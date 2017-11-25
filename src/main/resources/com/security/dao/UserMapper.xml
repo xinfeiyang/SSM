@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.security.dao.UserMapper">
+
+	<resultMap type="user" id="user_dept">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+		<result column="gender" property="gender" />
+		<result column="age" property="age" />
+		<result column="birth" property="birth" />
+
+		<!-- 分段查询，可以延迟加载 -->
+		<!-- 首先根据id查询出来user的信息,然后把did的值传给要执行的select语句; -->
+		<association property="department" column="did"
+			select="com.security.dao.DepartmentMapper.getDepartmentById">
+		</association>
+	</resultMap>
+
+	<insert id="addUser" parameterType="user">
+		insert into user(name,gender,age,did)
+		values(#{name},#{gender},#{age},#{department.id})
+	</insert>
+
+	<select id="getUserWithDeptById" resultMap="user_dept">
+		select id,name,gender,age,birth,did from user where id=#{id}
+	</select>
+
+	<!--根据部门id获取User-->
+	<select id="getUserByDeptId" resultMap="user_dept">
+		select id,name,gender,age,birth,did from user where did=#{deptId}
+	</select>
+	
+	<!-- 返回全部用户信息 -->
+	<select id="getUsers" resultMap="user_dept">
+		select id,name,gender,age,birth,did from user
+	</select>
+	
+	
+	<select id="getUserByConditon" resultMap="user_dept">
+		<bind name="user_conditon" value="'%'+condition+'%'"></bind>
+		select id,name,gender,age,birth,did from user
+		<where>
+			name like #{user_conditon}
+			or gender like #{user_conditon}
+		</where>
+	</select>
+	
+	
+	<!-- 更新用户信息 -->
+	<update id="updateUser">
+		update user
+		<set>
+			<if test="name!=null">
+				name=#{name},
+			</if>
+			<if test="age!=null">
+				age=#{age},
+			</if>
+			<if test="birth!=null">
+				birth=#{birth},
+			</if>
+			<if test="department.id!=null">
+				did=#{department.id},
+			</if>
+		</set>
+		<where>
+			id=#{id}
+		</where>
+	</update>
+
+</mapper>

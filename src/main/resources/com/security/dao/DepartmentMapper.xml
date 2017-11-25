@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.security.dao.DepartmentMapper">
+
+	<select id="getDepartmentById" resultType="department">
+		select id,deptname from department where id=#{id}
+	</select>
+
+	<resultMap type="department" id="dept_user">
+		<id column="id" property="id" />
+		<result column="deptname" property="deptname" />
+		<!-- 分段查询，可以延迟加载 -->
+		<!-- 首先根据id查询出来user的信息,然后把did的值传给要执行的select语句; -->
+		<collection property="users" column="id" 
+			select="com.security.dao.UserMapper.getUserByDeptId"></collection>
+	</resultMap>
+
+	<select id="getDepartmentWithUsersById" resultMap="dept_user">
+		select * from department where id=#{id}
+	</select>
+	
+	<select id="getDepartments" resultType="department">
+		select * from department
+	</select>
+
+</mapper>
