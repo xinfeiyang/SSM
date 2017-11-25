@@ -1,16 +1,11 @@
 package com.security.listener;
 
 import javax.servlet.ServletContext;
-
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.ServletContextAware;
-
 import com.security.bean.User;
 import com.security.service.UserService;
 

@@ -31,6 +31,7 @@
 		<mvc:interceptor>
 			<mvc:mapping path="/**"/>
 			<mvc:exclude-mapping path="/login"/>
+			<mvc:exclude-mapping path="/sendget"/>
 			<mvc:exclude-mapping path="/resource/**"/>
 			<bean class="com.security.interceptor.CustomInterceptor"/>
 		</mvc:interceptor>

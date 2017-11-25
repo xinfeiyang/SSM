@@ -22,6 +22,7 @@ import com.security.bean.User;
 import com.security.exception.BusinessException;
 import com.security.service.DepartmentService;
 import com.security.service.UserService;
+import com.security.util.HttpClientUtil;
 
 @Controller
 public class UserController {
@@ -186,6 +187,15 @@ public class UserController {
 	public String login(String username,HttpSession session){
 		session.setAttribute("username",username);
 		return "redirect:/list";
+	}
+	
+	@GetMapping("/sendget")
+	@ResponseBody
+	public String sendGet(){
+		String url="http://apis.juhe.cn/idcard/index?key=5086bcbb0779bea2f88385de94ce89bd&dtype=json&cardno=410185199004141596";
+		String result=HttpClientUtil.doGet(url);
+		System.out.println(result);
+		return result;
 	}
 
 }
