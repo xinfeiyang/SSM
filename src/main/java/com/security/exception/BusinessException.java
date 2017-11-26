@@ -1,5 +1,8 @@
 package com.security.exception;
 
+/**
+ * 自定义异常
+ */
 public class BusinessException extends Exception {
 
 	private static final long serialVersionUID = -3877632972829688761L;

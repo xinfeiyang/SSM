@@ -29,10 +29,13 @@
 	<!-- 配置拦截器 -->
 	<mvc:interceptors>
 		<mvc:interceptor>
+			<!-- 所有的请求都进入拦截器 -->
 			<mvc:mapping path="/**"/>
+			<!-- 配置不拦截的路径-->
 			<mvc:exclude-mapping path="/login"/>
 			<mvc:exclude-mapping path="/sendget"/>
 			<mvc:exclude-mapping path="/resource/**"/>
+			<!-- 配置具体的拦截器 -->
 			<bean class="com.security.interceptor.CustomInterceptor"/>
 		</mvc:interceptor>
 	</mvc:interceptors>

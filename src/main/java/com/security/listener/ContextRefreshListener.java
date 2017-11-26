@@ -28,6 +28,7 @@ public class ContextRefreshListener implements ApplicationListener<ContextRefres
 		if(event.getApplicationContext().getParent()==null){
 			System.out.println("---------->web容器初始化");
 			User user=service.getUserById(1);
+			//相当于把User对象放入Application中;
 			servletContext.setAttribute("user",user);
 		}
 	}

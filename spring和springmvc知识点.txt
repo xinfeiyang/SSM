@@ -1,0 +1,433 @@
+1、关于在jsp页面中日期的格式化问题
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<fmt:formatDate value="${user.birth}" pattern="yyyy-MM-dd HH:mm:ss" /></td>
+<input type="text" name="birth" value="<fmt:formatDate value='${user.birth}' pattern='yyyy-MM-dd HH:mm:ss' />" />
+
+2、Controller中的方法返回值问题
+2.1 逻辑视图名:controller方法返回字符串可以指定逻辑视图名,通过视图解析器解析为物理视图地址。
+	@GetMapping("/list")
+	public String getUsers(Model model){
+		List<User> list = userService.getUsers();
+		model.addAttribute("list",list);
+		return "success";
+	}
+	
+2.2 Redirect重定向:Contrller方法返回字符串可以重定向到一个url地址。
+	/**
+	 * Redirect:重定向
+	 * 重定向后浏览器地址栏变更为重定向的地址
+	 * 重定向相当于执行了新的request和response，所以之前的请求参数都会丢失
+	 * 如果要指定请求参数，需要在重定向的url后面添加 ?itemId=1 这样的请求参数
+	 */
+	@PostMapping("/update")
+	public String update(User user){
+		userService.updateUser(user);
+		return "redirect:/list";
+	}
+	
+2.3 forward转发:Controller方法执行后继续执行另一个Controller方法
+	/**
+	 * forward:请求转发
+	 * 使用转发的方式实现,转发后浏览器地址栏还是原来的请求地址;
+	 * 转发并没有执行新的request和response,所以之前的请求参数都存在
+	 * 效果：在forward.jsp页面中,可以利用jstl表达式取出username的值;
+	 * model相当于把值放入request域中，如果用请求转发的方式，可以把model中的值传入下一个jsp页面中;
+	 */
+	@GetMapping("/forward")
+	public String testForward(Model model){
+		model.addAttribute("username","冯朗");
+		return "forward:/testforward";
+	}
+	
+	/**
+	*进入forward.jsp页面
+	*/
+	@GetMapping("/testforward")
+	public String forward(Model model){
+		List<String> list=new ArrayList<>();
+		list.add("冯朗");
+		list.add("冯跃");
+		list.add("李晓丹");
+		list.add("李佩丹");
+		list.add("郑艳玲");
+		list.add("郑玲玲");
+		model.addAttribute("list",list);
+		return "forward";
+	}
+	
+3、异常处理思路:系统中异常包括两类：预期异常和运行时异常RuntimeException,前者通过捕获异常从而获取异常信息,后者主要通过规范代码开发、测试通过手段减少运行时异常的发生.
+
+3.1 自定义异常处理方式一
+	/**
+	 * 自定义异常
+	 */
+	public class BusinessException extends Exception {
+	
+		private static final long serialVersionUID = -3877632972829688761L;
+	
+		private String message;
+	
+		public BusinessException(String message) {
+			super();
+			this.message = message;
+		}
+	
+		public String getMessage() {
+			return message;
+		}
+	
+		public void setMessage(String message) {
+			this.message = message;
+		}
+	
+	}
+	
+	/**
+	 * 全局异常处理
+	 * 方法一:
+	 */
+	@ControllerAdvice
+	public class GlobalExceptionHandler {
+	
+		@ExceptionHandler(value={BusinessException.class,Exception.class})
+		public ModelAndView handkeException(Exception ex) {
+			ModelAndView modelAndView=new ModelAndView();
+			modelAndView.addObject("msg",ex.getMessage());
+			modelAndView.setViewName("error");
+			return modelAndView;
+		}
+	
+	}
+	
+	/**
+	 * 此方法抛出的异常由GlobalExceptionHanlder处理;
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unused")
+	@GetMapping("/testexception")
+	public String testException(CustomBean user) throws Exception{
+		if(true){
+			throw new SQLException("SQL错误");
+		}
+		int i=1/0;
+		return "forward";
+	}
+	
+	/**注意：
+	 * 在Controller中抛出的异常,当没有被catch处理时,
+	 * GlobalExceptionHandler中定义的处理方法可以起作用!
+	 * 此方法抛出的异常由GlobalExceptionHanlder处理;
+	 * @return
+	 * @throws Exception
+	 */
+	@GetMapping("/exception")  
+    public String exception() throws Exception {   
+        throw new BusinessException("业务执行异常");  
+    } 
+	
+	/**
+	 * 此方法抛出的异常不是由GlobalExceptionHandler处理,
+	 * 而是在catch代码块内进行处理;
+	 */
+	@GetMapping("/exceptions")  
+    public String exceptions(){   
+        try {
+			throw new BusinessException("业务执行异常");
+		} catch (BusinessException e) {
+			e.printStackTrace();
+		}  
+        return "forward";
+    } 
+    
+    
+3.2 自定义异常处理方式二
+	/**
+	 * 全局异常处理
+	 * 方法二:
+	 */
+	@Component
+	public class CustomExceptionResolver implements HandlerExceptionResolver {
+	
+		@Override
+		public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler,Exception ex) {
+			String msg="";
+			if(ex instanceof BusinessException){
+				BusinessException exception=(BusinessException)ex;
+				msg=exception.getMessage();
+			}else{
+				msg=ex.getMessage();
+			}
+			ModelAndView modelAndView=new ModelAndView();
+			modelAndView.addObject("msg",msg);
+			modelAndView.setViewName("error");
+			return modelAndView;
+		}
+	
+	}
+	
+	在error.jsp中展示错误信息;
+	<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+	<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+	<html>
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>错误页</title>
+	</head>
+	<body>
+		<h2>${msg}</h2>
+	</body>
+	</html>
+	
+	
+4、在使用延迟加载功能时,出现属性序列化和反序列化异常的处理;
+	
+	/**
+	 * 在使用时,为了解决延迟加载出现的错误,应该在实体类上添加@JsonIgnoreProperties, 
+	 * 作用是json序列化时忽略bean中的一些属性序列化和反序列化时抛出的异常.
+	 */
+	@JsonIgnoreProperties(value={"hibernateLazyInitializer","handler"})
+	public class User implements Serializable{
+	
+	}
+
+	/**
+	 * 测试Json;
+	 * 注意：在使用时,为了解决延迟加载出现的错误,应该在实体类上添加@JsonIgnoreProperties, 
+	 * 作用是json序列化时忽略bean中的一些属性序列化和反序列化时抛出的异常.
+	 * @return
+	 */
+	@ResponseBody
+	@GetMapping("/json")
+	public List<User> testJson(){
+		List<User> list = userService.getUsers();
+		return list;
+	}
+	
+5、拦截器的使用(可参考:https://www.cnblogs.com/banning/p/6195072.html);
+5.1自定义拦截器,实现HandlerInterceptor接口
+	/**
+	 * 自定义拦截器
+	 */
+	public class CustomInterceptor implements HandlerInterceptor {
+	
+		/**
+		 * Controller执行前调用此方法,这里可以加入登录校验、权限拦截等
+		 * return:true代表放行;false代表拦截,终止执行;
+		 */
+		@Override
+		public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+				throws Exception {
+			System.out.println("-------preHandle");
+			HttpSession session = request.getSession();
+			String username=(String) session.getAttribute("username");
+			if(username!=null){
+				return true;
+			}else{
+				response.sendRedirect(request.getContextPath()+"/login");
+				return false;
+			}
+		}
+	
+		/**
+		 * controller执行后但未返回视图前调用此方法
+		 * 这里可在返回用户前对模型数据进行加工处理，比如这里加入公用信息以便页面显示
+		 */
+		@Override
+		public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+				ModelAndView modelAndView) throws Exception {
+			System.out.println("----------->postHandle");
+		}
+	
+		/**
+		 * controller执行后且视图返回后调用此方法
+		 * 这里可得到执行controller时的异常信息
+		 */
+		@Override
+		public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+				throws Exception {
+			System.out.println("----------->afterCompletion");
+		}
+	
+	}
+	
+	
+	/**
+	 * 自定义拦截器2
+	 */
+	public class CustomInterceptor2 implements HandlerInterceptor {
+	
+		@Override
+		public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+				throws Exception {
+			System.out.println("----------->preHandle222-->"+request.getRequestURI());
+			return true;
+		}
+	
+		@Override
+		public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
+				ModelAndView modelAndView) throws Exception {
+			System.out.println("----------->postHandle222");
+		}
+	
+		@Override
+		public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+				throws Exception {
+			System.out.println("----------->afterCompletion222");
+		}
+	
+	}
+	
+5.2在springmvc中配置拦截器;
+	<!-- 配置拦截器 -->
+	<mvc:interceptors>
+	
+		<mvc:interceptor>
+			<!-- 所有的请求都进入拦截器 -->
+			<mvc:mapping path="/**"/>
+			<!-- 配置不拦截的路径-->
+			<mvc:exclude-mapping path="/login"/>
+			<mvc:exclude-mapping path="/sendget"/>
+			<mvc:exclude-mapping path="/resource/**"/>
+			<!-- 配置具体的拦截器 -->
+			<bean class="com.security.interceptor.CustomInterceptor"/>
+		</mvc:interceptor>
+		
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean class="com.security.interceptor.CustomInterceptor2"/>
+		</mvc:interceptor>
+		
+	</mvc:interceptors>
+	
+5.3拦截器运行流程分析;
+	①HandlerInterceptor1的preHandler方法返回false,HandlerInterceptor2返回true,运行流程如下：
+    HandlerInterceptor1..preHandle..
+          从日志看出第一个拦截器的preHandler方法返回false后第一个拦截器只执行了preHandler方法，其它两个方法没有执行，
+          第二个拦截器的所有方法不执行，且Controller也不执行了。
+          
+    ②HandlerInterceptor1的preHandler方法返回true,HandlerInterceptor2返回false，运行流程如下：
+	HandlerInterceptor1..preHandle..
+	HandlerInterceptor2..preHandle..
+	HandlerInterceptor1..afterCompletion..
+	从日志看出第二个拦截器的preHandler方法返回false后第一个拦截器的postHandler没有执行,
+	第二个拦截器的postHandler和afterCompletion没有执行,且controller也不执行了。
+	
+	总结:
+	preHandle按拦截器定义顺序调用
+	postHandler按拦截器定义逆序调用
+	afterCompletion按拦截器定义逆序调用
+	
+	postHandler在拦截器链内所有拦截器返成功调用
+	afterCompletion只有preHandle返回true才调用
+	
+6、spring的石英调度(可参考:http://kevin19900306.iteye.com/blog/1397744);
+	①加入依赖
+	<!-- quartz任务调度框架 -->
+	<dependency>
+		<groupId>org.quartz-scheduler</groupId>
+		<artifactId>quartz</artifactId>
+		<version>2.3.0</version>
+	</dependency>
+	
+	②加入spring-quartz.xml的配置信息
+	<?xml version="1.0" encoding="UTF-8"?>
+	<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+								http://www.springframework.org/schema/beans/spring-beans.xsd
+								http://www.springframework.org/schema/context
+								http://www.springframework.org/schema/context/spring-context.xsd">
+	
+		<!-- 注册自定义作业类 -->
+		<bean id="myJob" class="com.security.quartz.ScheduleQuartz"/>
+	
+		<!-- 配置JobDetail -->
+		<bean id="myJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+			<!-- 注入目标对象 -->
+			<property name="targetObject">
+				<ref bean="myJob" />
+			</property>
+			<!-- 注入目标方法 -->
+			<property name="targetMethod">
+				<value>run</value>
+			</property>
+		</bean>
+	
+		<!-- 配置触发器 -->
+		<bean id="trigger"
+			class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+			<!-- 注入任务详情对象 -->
+			<property name="jobDetail">
+				<ref bean="myJobDetail" />
+			</property>
+			<!-- 注入cron表达式，通过这个表达式指定触发的时间点 -->
+			<property name="cronExpression">
+				<value>0/5 * * * * ?</value>
+			</property>
+		</bean>
+	
+		<!-- 配置调度工厂 -->
+		<bean id="sheduler"
+			class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+			<!-- 注入触发器,可配置多个 -->
+			<property name="triggers">
+				<list>
+					<ref bean="trigger" />
+				</list>
+			</property>
+		</bean>
+	
+	</beans>
+	
+	③在applicationcontext.xml中加入分支配置文件
+	<!--在一个配置文件中引入另外一个配置文件 -->
+	<import resource="spring-quartz.xml"/>
+	
+7、上下文监听,初始化WEB容器;
+
+	/**
+	 * WEB容器初始化时调动;
+	 */
+	@Component
+	public class ContextRefreshListener implements ApplicationListener<ContextRefreshedEvent>,ServletContextAware{
+	
+		@Autowired
+		private UserService service;
+		
+		private ServletContext servletContext;
+		
+		/**
+		 * 上下文刷新事件
+		 */
+		@Override
+		public void onApplicationEvent(ContextRefreshedEvent event) {
+			if(event.getApplicationContext().getParent()==null){
+				System.out.println("---------->web容器初始化");
+				User user=service.getUserById(1);
+				//相当于把User对象放入Application中;
+				servletContext.setAttribute("user",user);
+			}
+		}
+	
+	
+		@Override
+		public void setServletContext(ServletContext servletContext) {
+			this.servletContext=servletContext;
+		}
+	
+	}
+	
+8、上传项目到git(参考:http://blog.csdn.net/zongzhankui/article/details/48653731)
+	
+	
+	
+	
+	
+	
+    
+	
+	
+	
+	
