@@ -419,7 +419,37 @@
 	
 	}
 	
-8、上传项目到git(参考:http://blog.csdn.net/zongzhankui/article/details/48653731)
+8、cookie的使用(使用插件jquery.coolie.js)
+	具体使用参考login.jsp,代码如下:
+	<form action="/login" method="post">
+		<input type="text" name="username" id="username"/><br/>
+		<input type="checkbox" name="remember" id="rememberme"/>记住我<br/>
+		<input type="submit" value="LOGIN"/>
+	</form>
+	<br/>
+	<h3>${applicationScope.user.name}:${user.age}</h3>
+	
+	<script type="text/javascript" src="/resource/js/jquery.js"></script>
+	<script type="text/javascript" src="/resource/js/jquery.cookie.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			var COOLIE_NAME="username";
+			if($.cookie(COOLIE_NAME)){
+				$("#username").val($.cookie(COOLIE_NAME));
+				$("#rememberme").attr("checked","checked");
+			}
+			
+			$("#rememberme").click(function(){
+				if(this.checked){
+					$.cookie(COOLIE_NAME,$("#username").val(),{path:'/',expires:10});
+				}else{
+					$.cookie(COOLIE_NAME,null,{path:'/'});
+				}
+			});
+		});
+	</script>
+
+9、上传项目到git(参考:http://blog.csdn.net/zongzhankui/article/details/48653731)
 	
 	
 	
