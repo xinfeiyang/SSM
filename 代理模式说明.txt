@@ -1,0 +1,157 @@
+代理模式分为两种:静态代理和动态代理
+
+	/**
+	 * 自定义一个接口
+	 */
+	public interface Hello {
+		
+		public void say(String name);
+		
+	}
+	
+	/**
+	 * 自定义的接口的一个实现类
+	 */
+	public class HelloImp implements Hello {
+	
+		@Override
+		public void say(String name) {
+			System.out.println("hello-->"+name);
+		}
+	
+	}
+
+1、静态代理：静态代理中的代理类，需要我们自己写(需要事先写好代理类)
+	/**
+	 * 静态代理;
+	 */
+	public class StaticProxy implements Hello {
+		private Hello hello;
+	
+		public StaticProxy() {
+			hello = new HelloImp();
+		}
+		
+		public void before(){
+			System.out.println("----------------->before");
+		}
+		
+		public void after(){
+			System.out.println("<----------------after");
+		}
+	
+		@Override
+		public void say(String name) {
+			before();
+			hello.say(name);
+			after();
+		}
+	}
+	
+	//测试;
+	public static void main(String[] args) {
+		StaticProxy proxy=new StaticProxy();
+		proxy.say("冯朗");
+	}
+	
+2、JDK动态代理:(JDK动态代理只能针对实现了接口的类生成代理);此时代理对象和目标对象实现了相同的接口,目标对象作为代理对象的一个属性,
+具体接口实现中,可以在调用目标对象相应方法前后加上其他业务处理逻辑.
+	/**
+	 * JDK动态代理;
+	 */
+	public class JDKProxy implements InvocationHandler{
+		
+		private Object object;
+		
+		public JDKProxy(Object object) {
+			this.object=object;
+		}
+		
+		public void before(){
+			System.out.println("----------------->before");
+		}
+		
+		public void after(){
+			System.out.println("<----------------after");
+		}
+	
+		@Override
+		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+			before();
+			Object result=method.invoke(object,args);
+			after();
+			return result;
+		}
+		
+		
+		@SuppressWarnings("unchecked")
+		public <T> T getProxy(){
+			/**
+			 * ClassLoader loader:类加载器;
+			 * Class<?>[] interfaces:获取目标类全部的接口;
+			 * InvocationHander:得到InvocationHandler接口的子类实例;
+			 */
+			return (T) Proxy.newProxyInstance(
+					object.getClass().getClassLoader(), 
+					object.getClass().getInterfaces(), 
+					this);
+		}
+	
+	}
+	
+	//测试JDK动态代理
+	public static void main(String[] args) {
+
+		Hello hello=new HelloImp();
+		JDKProxy jdkProxy=new JDKProxy(hello);
+		Hello proxy=jdkProxy.getProxy();
+		proxy.say("冯朗");
+		
+	}
+	
+3、CGLib动态代理(需要加入cglib包):CGLIB代理是针对类实现代理,主要是对指定的类生成一个子类,
+覆盖其中的所有方法,所以该类或方法不能声明称final的.
+	/**
+	 * CGLib动态代理;
+	 */
+	public class CGLibProxy implements MethodInterceptor {
+		
+		public void before(){
+			System.out.println("----------------->before");
+		}
+		
+		public void after(){
+			System.out.println("<----------------after");
+		}
+	
+		@Override
+		public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+			before();
+			Object result=proxy.invokeSuper(obj, args);
+			after();
+			return result;
+		}
+		
+		/**
+		 * 获取代理的实例;
+		 * @return
+		 */
+		public Object createProxyInstance(Class<?> clazz){
+			return Enhancer.create(clazz,this);
+		}
+		
+	}
+	
+	//测试CGLib动态代理
+	public static void main(String[] args) {
+		HelloImp hello=(HelloImp) new CGLibProxy().createProxyInstance(HelloImp.class);
+		hello.say("冯朗");
+	}
+	
+	//打印结果:
+	----------------->before
+	hello-->冯朗
+	<----------------after
+	
+
+	

@@ -26,6 +26,7 @@ public class User implements Serializable{
 	public User() {
 
 	}
+	
 
 	public User(String name, String gender, Integer age, Department department) {
 		this.name = name;

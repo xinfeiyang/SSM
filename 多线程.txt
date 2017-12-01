@@ -1,0 +1,261 @@
+1、Java实现多线程的方式
+(1)继承Thread，重写run()方法
+(2)实现Runable接口
+(3)实现Callable<T>接口,可以获取线程的计算结果;
+实例：
+	//拥有返回结果实现;
+	public class CallTask implements Callable<Integer>{
+
+		@Override
+		public Integer call() throws Exception {
+			int sum=0;
+			for(int i=0;i<=100;i++){
+				sum+=i;
+			}
+			return sum;
+		}
+		
+	}
+	
+	public class Test {
+		public static void main(String[] args) {
+		
+			CallTask callable=new CallTask();
+			//执行Callable方式,需要FutureTask实现类的支持,用于接收运算结果;
+			FutureTask<Integer> futureTask=new FutureTask<>(callable);
+			new Thread(futureTask).start();
+			
+			int total=0;
+			for(int i=101;i<=200;i++){
+				total+=i;
+			}
+			
+			try {
+				//FutureTask的get()方法只有在线程计算完毕的情况下才会返回结果;
+				//FutureTask的这种特性可用于闭锁操作;
+				//FutureTask.get()获取的是Callable的计算结果;
+				Integer sum=futureTask.get();
+				System.out.println("0-100总和为:"+sum);
+				System.out.println("0-200总和为:"+(sum+total));
+				System.out.println("----------");
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+2、Synchronized关键字
+	2.1 Synchronized锁重入
+	（1）关键字Synchronized拥有锁重入的功能，也就是在使用Synchronized的时候，当一个线程得到一个对象的锁后，
+	在该锁里执行代码的时候可以再次请求该对象的锁时可以再次得到该对象的锁。
+	（2）当线程请求一个由其它线程持有的对象锁时，该线程会阻塞，而当线程请求由自己持有的对象锁时，
+	如果该锁是重入锁,请求就会成功，否则阻塞。
+	（3）一个简单的例子就是:在一个Synchronized修饰的方法或代码块的内部调用本类的其他Synchronized修饰的方法或代码块时，
+	是永远可以得到锁的.
+	（4）可重入锁的概念就是：自己可以获取自己的内部锁，最大的作用是避免死锁。假如有一个场景：用户名和密码保存在本地txt文件中，
+	则登录验证方法和更新密码方法都应该被加synchronized，那么当更新密码的时候需要验证密码的合法性，所以需要调用验证方法，此时是可以调用的。
+	
+	2.2 Synchronized的特性
+	（1）出现异常时，锁自动释放:当一个线程执行的代码出现异常的时候，其所持有的锁会自动释放;
+	（2）可以将任意对象作为监视器;
+	（3）若Synchronized关键字在非静态方法提上,则当前持有锁的是当前的这个对象,也就是this;
+	（4）若Synchronized关键字在静态方法提上,则当前尺有所的是这个类，如Person.class;
+	（5） Volatile保证多个线程访问共享数据时，保证内存可见性;
+	
+3、线程通信的介绍与使用:使用wait/nofity线程间通信
+	3.1 wait方法
+	 （1）方法wait()的作用是使当前执行代码的线程进行等待，该方法会将该线程放入”预执行队列“中，
+	  并且在wait()所在的代码处停止执行，直到接到通知或被中断为止。
+	  （2）在调用wait()之前，线程必须获得该对象级别锁，即只能在同步方法或同步块中调用wait()方法。
+	  （3）需要注意的是wait()是释放锁的，即在执行到wait()方法之后，当前线程会释放锁，
+	     当从wait()方法返回前，线程与其他线程竞争重新获得锁。
+	     
+	 3.2 notify方法
+	 （1）同wait()方法一样,notify()方法也要在同步块或同步方法中调用，即在调用前，线程也必须获得该对象的对象级别锁。
+	 （2）该方法是用来通知那些可能等待该对象的对象锁的其他线程，如果有多个线程等待，则由线程规划器随机挑选出其中一个呈wait状态的线程，
+	    对其发出通知notify，并使它等待获取该对象的对象锁。
+	  （3）需要注意的是：执行notify方法之后，当前线程不会立即释放其拥有的该对象锁，而是执行完之后才会释放该对象锁，
+	       被通知的线程也不会立即获得对象锁，而是等待notify方法执行完之后，释放了该对象锁，才可以获得该对象锁。
+	   （4）notifyAll()通知所有等待同一共享资源的全部线程从等待状态退出，进入可运行状态，重新竞争获得对象锁。
+	   
+	 3.3 wait()/notify()方法总结
+	   （1）wait()/notify()要集合synchronized关键字一起使用，因为他们都需要首先获取该对象的对象锁；
+              （2）wait方法是释放锁，notify方法是不释放锁的；
+              
+4、使用Lock对象实现同步以及线程间通信
+	4.1 ReentrantLock:重入锁,效果如同synchronized关键字;
+	使用示例如下：
+	Lock lock=new ReentrantLock();
+	在方法体开始的时候,lock.lock();
+	在方法结束的时候，在finally体内执行lock.unlock();
+	
+	4.2使用Lock对象实现线程间通信
+	(1)使用关键字synchronized与wait()方法和notify()方式结合实现线程间通信，也就是等待/通知模式。在ReentrantLock中，是借助Condition对象进行实现的。
+	(2)Condition按字面意思理解就是条件，当然，我们也可以将其认为是条件进行使用，这样的话我们可以通过上述的代码创建多个Condition条件，
+	我们就可以根据不同的条件来控制现成的等待和通知。而我们还知道，在使用关键字synchronized与wait()方法和notify()方式结合实现线程间通信的时候，
+	notify/notifyAll的通知等待的线程时是随机的，显然使用Condition相对灵活很多，可以实现”选择性通知”。
+	(3)synchronized关键字相当于整个Lock对象只有一个单一的Condition对象，所有的线程都注册到这个对象上。线程开始notifAll的时候，需要通知所有等待的线程，
+	让他们开始竞争获得锁对象，没有选择权，这种方式相对于Condition条件的方式在效率上肯定Condition较高一些。
+	
+	4.3使用synchronized的wait()、notify()/notifyAll()方法和Condition类的方法的对比
+	（1）synchronized的wait()方法相当于Condition类中的await()方法;
+	（2）synchronized的notify()方法相当于Condition类中的signal()方法;
+	（3）synchronized的notifyAll()方法相当于Condition类中的signalAll()方法.
+	
+	4.4使用Lock对象和多个Condition实现等待/通知实例
+	如：写两个线程,其中一个打印1~52,另外一个打印A~Z,打印顺序应该是12A34B56C...5152Z。
+	public class Print{
+
+		private int num=1;
+		private Lock lock=new ReentrantLock();
+		private Condition numberCondition=lock.newCondition();
+		private Condition charCondition=lock.newCondition();
+		
+		public void printNumber(Integer number){
+			lock.lock();
+			try {
+				if(num%3==0){
+					numberCondition.await();
+				}
+				System.out.println(Thread.currentThread().getName()+":"+number);
+				num++;
+				charCondition.signal();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}finally{
+				lock.unlock();
+			}
+		}
+		
+		public void printCharacter(char ch){
+			lock.lock();
+			try {
+				if(num%3!=0){
+					charCondition.await();
+				}
+				System.out.println(Thread.currentThread().getName()+":"+ch);
+				num++;
+				System.out.println("---------------------------------------");
+				numberCondition.signal();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}finally{
+				lock.unlock();
+			}
+		}
+	}
+	
+	public class Tests {
+		public static void main(String[] args) {
+		
+			final Print print = new Print();
+			
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					for (int i = 1; i <= 52; i++) {
+						print.printNumber(i);
+					}
+				}
+			}, "打印数字").start();
+	
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					for (char i = 'A'; i <= 'Z'; i++) {
+						print.printCharacter(i);
+					}
+				}
+			}, "打印字符").start();
+		}
+	}
+		
+5、线程计数器CountDownLatch和循环屏障CyclicBarrier
+	5.1CountDownLatch是一个非常实用的多线程控制工具类，称之为“倒计时器”，它允许一个或多个线程一直等待，直到其他线程的操作执行完后再执行.
+	（1）CountDownLatch的构造函数:CountDownLatch countDownLatch=new CountDownLatch(threadCount);threadCount表示需要等待执行完毕的线程数量.
+	（2）在每一个线程执行完毕之后，都需要执行countDownLatch.countDown()方法，不然计数器就不会准确;
+	（3）只有所有的线程执行完毕之后，才会执行 countDownLatch.await()之后的代码；
+	（4）可以看出上述代码中CountDownLatch阻塞的是主线程.
+	说明：CountDownLatch.java类中定义的构造函数：public CountDownLatch(int count){...}
+	1、构造器中的计数值（count）实际上就是闭锁需要等待的线程数量,这个值只能被设置一次,而且CountDownLatch没有提供任何机制去重新设置这个计数值。
+    2、与CountDownLatch的第一次交互是主线程等待其他线程。主线程必须在启动其他线程后立即调用CountDownLatch.await()方法。这样主线程的操作就会在这个方法上阻塞，直到其他线程完成各自的任务。
+	3、其他N 个线程必须引用闭锁对象，因为他们需要通知CountDownLatch对象，他们已经完成了各自的任务。这种通知机制是通过 CountDownLatch.countDown()方法来完成的；
+	每调用一次这个方法，在构造函数中初始化的count值就减1。所以当N个线程都调用了这个方法，count的值等于0，然后主线程就能通过await()方法，恢复执行自己的任务。
+	如:5人集合完毕,才可以进行下面的活动;
+	final CountDownLatch latch=new CountDownLatch(5);
+		
+	for(int i=1;i<=5;i++){
+		final int index=i;
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				System.out.println(Thread.currentThread().getName()+"-->"+index+"正在工作");
+				latch.countDown();
+			}
+		}).start();
+	}
+	
+	try {
+		latch.await();
+		System.out.println("人员已集结完毕,开始活动");
+	} catch (InterruptedException e) {
+		e.printStackTrace();
+	}
+	
+	5.2 CyclicBarrierr
+	 1、CyclicBarrier的字面意思是可循环使用(Cyclic)的屏障(Barrier).它要做的事情是，让一组线程到达一个屏障（也可以叫同步点）时被阻塞，直到最后一个线程到达屏障时，屏障才会开门，所有被屏障拦截的线程才会继续干活。
+	 2、CyclicBarrier默认的构造方法是CyclicBarrier(int parties)，其参数表示屏障拦截的线程数量，每个线程调用await方法告诉CyclicBarrier我已经到达了屏障，然后当前线程被阻塞。
+	 3、CyclicBarrier强调的是n个线程，大家相互等待，只要有一个没完成，所有人都得等着。
+	 final CyclicBarrier barrier=new CyclicBarrier(5,new Runnable() {
+			
+			@Override
+			public void run() {
+				System.out.println("人员已集结完毕");
+			}
+		});
+		
+		for(int i=1;i<=5;i++){
+			final int index=i;
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						System.out.println(Thread.currentThread().getName()+"-->第"+index+"等待前");
+						barrier.await();
+						System.out.println("-->第"+index+"等待后");
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} catch (BrokenBarrierException e) {
+						e.printStackTrace();
+					}
+				}
+			}).start();
+		}
+		
+		//打印结果如下:
+		Thread-1-->第2等待前
+		Thread-3-->第4等待前
+		Thread-0-->第1等待前
+		Thread-4-->第5等待前
+		Thread-2-->第3等待前
+		人员已集结完毕
+		-->第3等待后
+		-->第2等待后
+		-->第1等待后
+		-->第5等待后
+		-->第4等待后
+		
+	5.3、CyclicBarrier和CountDownLatch的区别
+	（1）CountDownLatch的计数器只能使用一次，而CyclicBarrier的计数器可以使用reset()方法重置。所以CyclicBarrier能处理更为复杂的业务场景，比如如果计算发生错误，可以重置计数器，并让线程们重新执行一次。
+	（2）CyclicBarrier还提供其他有用的方法，比如getNumberWaiting方法可以获得CyclicBarrier阻塞的线程数量。isBroken方法用来知道阻塞的线程是否被中断。比如以下代码执行完之后会返回true。
+	（3）CountDownLatch会阻塞主线程，CyclicBarrier不会阻塞主线程，只会阻塞子线程。
+	
+		
+		
+		
+		       
+		
+		
+		
+	

@@ -7,7 +7,6 @@ import java.util.List;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.security.bean.Bean;
 import com.security.bean.CustomBean;
 import com.security.bean.Department;
@@ -26,12 +26,6 @@ import com.security.util.HttpClientUtil;
 
 @Controller
 public class UserController {
-	
-	@Value("${username}")
-	private String username;
-	
-	@Value("${password}")
-	private String password;
 	
 	@Autowired
 	private UserService userService;
