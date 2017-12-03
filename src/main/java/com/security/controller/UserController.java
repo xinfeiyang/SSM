@@ -21,6 +21,7 @@ import com.security.bean.Department;
 import com.security.bean.User;
 import com.security.exception.BusinessException;
 import com.security.service.DepartmentService;
+import com.security.service.EmailService;
 import com.security.service.UserService;
 import com.security.util.HttpClientUtil;
 
@@ -32,6 +33,14 @@ public class UserController {
 	
 	@Autowired
 	private DepartmentService departmentService;
+	
+	@Autowired
+	private EmailService emailService;
+	
+	@GetMapping("/sendEmail")
+	public void sendEmail() throws Exception{
+		emailService.sendEmail();
+	}
 	
 	@GetMapping("/list")
 	public String getUsers(Model model){

@@ -9,14 +9,15 @@
 			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
 			http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
 
-	<!--在一个配置文件中引入另外一个配置文件 -->
-	<import resource="spring-quartz.xml"/>
+	<!--在一个配置文件中引入另外一个配置文件
+	<import resource="spring-quartz.xml"/> -->
 	
-	
+	<!-- 利用javaMail发送邮件 -->
+	<import resource="spring-mail.xml"/>
 	<!-- Spring的配置文件，这里主要配置和业务逻辑有关的 -->
 
 	<!--数据库连接的配置信息(驱动,url,用户名,密码等) -->
-	<context:property-placeholder location="classpath:db.properties" />
+	<context:property-placeholder location="classpath:db.properties,classpath:mail.properties" />
 
 	<!-- Spring需要扫描的包:默认是全部扫描的,加入context:exclude-filter表示除了Controller和ControllerAdvice标识的，其它全部都要扫描到 -->
 	<context:component-scan base-package="com.security">

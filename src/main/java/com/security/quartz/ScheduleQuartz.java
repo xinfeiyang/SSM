@@ -6,6 +6,6 @@ package com.security.quartz;
 public class ScheduleQuartz {
 
 	public void run(){
-		System.out.println("定时任务执行......");
+		/*System.out.println("定时任务执行......");*/
 	}
 }

@@ -12,7 +12,7 @@ import com.security.service.UserService;
 /**
  * WEB容器初始化时调动;
  */
-@Component
+//@Component
 public class ContextRefreshListener implements ApplicationListener<ContextRefreshedEvent>,ServletContextAware{
 
 	@Autowired

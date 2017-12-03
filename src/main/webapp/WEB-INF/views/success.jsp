@@ -39,6 +39,14 @@
 			</c:forEach>
 		</table>
 	</form>
+	<a href="/sendEmail">发送邮件</a>
+	<script type="text/javascript" src="/resource/js/jquery.js"></script>
+	<script type="text/javascript" src="/resource/js/jquery.ocupload-1.1.2.js"></script>
+	<script type="text/javascript">
+		$(function(){
+			
+		});
+	</script>
 </body>
 
 </html>
