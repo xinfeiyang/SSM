@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.security.dao.RightsMapper">
+
+	<!-- 新增权限 -->
+	<insert id="addRight" parameterType="rights">
+		insert into
+		rights(url,name,rightPos,rightCode)
+		values(#{url},#{name},#{rightPos},#{rightCode})
+	</insert>
+	
+	<select id="getMaxRightPosAndRightCode" resultType="map">
+		select max(rightPos),max(rightCode) from rights 
+		where rightPos=(select max(rightPos) from rights)
+	</select>
+
+
+</mapper>

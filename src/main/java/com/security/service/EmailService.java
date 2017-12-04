@@ -1,7 +1,26 @@
-1、在resources目录下配置mail.properties;
-2、在resources目录下配置spring-mail.xml,并将其import引入applicationcontext.xml;
-3、在resources目录下新建文件夹freemarker,并且建立email.ftl文件;
-4、代码如下：在service包中EmailService目录下;
+package com.security.service;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeUtility;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
+import com.security.bean.User;
+import freemarker.template.Template;
+
+/**
+ * 发送邮件
+ */
+@Service
+public class EmailService {
+
 	@Autowired
 	private JavaMailSender javaMailSender;
 	
@@ -12,7 +31,6 @@
 	private FreeMarkerConfigurer freeMarkerConfigurer;
 
 	public void sendEmail() throws Exception {
-		//为freemarker模板设置数据;
 		Template template = freeMarkerConfigurer.getConfiguration().getTemplate("email.ftl");
 		User user = new User();
 		user.setName("冯朗");
@@ -33,8 +51,10 @@
 		// true表示启动HTML格式的邮件;
 		messageHelper.setText(text, true);
 		// 添加附件;
-		File file = new File("f:/upload/hibernate璁蹭箟.pdf");
+		File file = new File("f:/upload/hibernate讲义.pdf");
 		messageHelper.addAttachment(MimeUtility.encodeWord(file.getName()), file);
 		// 发送邮件
 		javaMailSender.send(message);
 	}
+
+}

@@ -1,0 +1,204 @@
+一、Spring定时任务一
+
+    1、自定义类，继承自QuartzJobBean
+	/**
+	 * 作业类继承自特定的基类QuartzJobBean
+	 */
+	public class MyQuartz extends QuartzJobBean {
+	
+		@Override
+		protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+			System.out.println("作业类继承自特定的基类QuartzJobBean");
+		}
+	
+	}
+	
+	2、在spring-quartzjobbean.xml中加入配置文件
+	<?xml version="1.0" encoding="UTF-8"?>
+	<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+								http://www.springframework.org/schema/beans/spring-beans.xsd
+								http://www.springframework.org/schema/context
+								http://www.springframework.org/schema/context/spring-context.xsd">
+	
+		<!-- 配置JobDetailBean -->
+		<bean id="job" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+			<property name="jobClass" value="com.security.quartz.MyQuartz"></property>
+		</bean>
+	
+		<!-- 配置触发器 -->
+		<bean id="trigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+			<!-- 注入任务详情对象 -->
+			<property name="jobDetail">
+				<ref bean="job" />
+			</property>
+			<!-- 注入cron表达式，通过这个表达式指定触发的时间点 -->
+			<property name="cronExpression">
+				<value>0/5 * * * * ?</value>
+			</property>
+		</bean>
+	
+		<!-- 配置调度工厂 -->
+		<bean id="sheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+			<!-- 注入触发器,可配置多个 -->
+			<property name="triggers">
+				<list>
+					<ref bean="trigger" />
+				</list>
+			</property>
+		</bean>
+	
+	</beans>
+	
+	3、将spring-quartzjobbean.xml配置文件加入applicationContext.xml中;
+	<!--定时任务,继承自QuartzJobBean-->
+	<import resource="spring-quartzjobbean.xml"/>
+	
+二、Spring定时任务2
+	
+		1、自定义定时任务;
+		/**
+		 * 石英调度任务;
+		 */
+		public class ScheduleQuartz {
+		
+			public void run(){
+				/*System.out.println("定时任务执行......");*/
+			}
+		}
+		
+		2、在spring-quartz.xml中加入配置文件
+		<?xml version="1.0" encoding="UTF-8"?>
+		<beans xmlns="http://www.springframework.org/schema/beans"
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+			xsi:schemaLocation="http://www.springframework.org/schema/beans 
+									http://www.springframework.org/schema/beans/spring-beans.xsd
+									http://www.springframework.org/schema/context
+									http://www.springframework.org/schema/context/spring-context.xsd">
+		
+			<!-- 注册自定义作业类 -->
+			<bean id="myJob" class="com.security.quartz.ScheduleQuartz"/>
+		
+			<!-- 配置JobDetail -->
+			<bean id="myJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+				<!-- 注入目标对象 -->
+				<property name="targetObject">
+					<ref bean="myJob" />
+				</property>
+				<!-- 注入目标方法 -->
+				<property name="targetMethod">
+					<value>run</value>
+				</property>
+			</bean>
+		
+			<!-- 配置触发器 -->
+			<bean id="trigger"
+				class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+				<!-- 注入任务详情对象 -->
+				<property name="jobDetail">
+					<ref bean="myJobDetail" />
+				</property>
+				<!-- 注入cron表达式，通过这个表达式指定触发的时间点 -->
+				<property name="cronExpression">
+					<value>0/5 * * * * ?</value>
+				</property>
+			</bean>
+		
+			<!-- 配置调度工厂 -->
+			<bean id="sheduler"
+				class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+				<!-- 注入触发器,可配置多个 -->
+				<property name="triggers">
+					<list>
+						<ref bean="trigger" />
+					</list>
+				</property>
+			</bean>
+		
+		</beans>
+		
+	3、将spring-quartz.xml配置文件加入applicationContext.xml中;
+	<!--自定义定时任务-->
+	<import resource="spring-quartz.xml"/>
+	
+三、Spring定时任务3
+	3.1 注解方式
+	3.1.1、自定义定时任务,注解方式
+	/**
+	 * Spring中简单的定时任务,可以看做一个简单的Quartz;
+	 */
+	@Component
+	public class TaskJob {
+	
+		@Scheduled(cron="0/5 * * * * ?")
+		public void job(){
+			System.out.println("Spring中简单的定时任务,可以看做一个简单的Quartz;");
+		}
+	}	
+	
+	3.1.2、在spring-task.xml中加入配置文件;
+	<?xml version="1.0" encoding="UTF-8"?>
+	<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:task="http://www.springframework.org/schema/task" 
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+								http://www.springframework.org/schema/beans/spring-beans.xsd
+								http://www.springframework.org/schema/context
+								http://www.springframework.org/schema/context/spring-context.xsd
+								http://www.springframework.org/schema/task 
+								http://www.springframework.org/schema/task/spring-task.xsd">
+		
+		
+		<!-- annotation注解方式 -->
+		<!-- 开启这个配置，spring才能识别@Scheduled注解   -->  
+	    <task:annotation-driven scheduler="scheduler" mode="proxy"/>  
+	    <task:scheduler id="scheduler" pool-size="10"/>
+	
+	</beans>
+	
+	3.1.3、将spring-task.xml配置文件加入applicationcontext.xml中
+	<!-- Spring中的定时任务,相当于一个简单的quartz; -->
+	<import resource="spring-task.xml"/>
+	
+-------------------------------------------------------------------------	
+	
+	3.2 注解方式
+	3.2.1、自定义定时任务,注解方式
+	/**
+	 * Spring中简单的定时任务,可以看做一个简单的Quartz;
+	 */
+	public class TaskJob {
+	
+		public void job(){
+			System.out.println("Spring中简单的定时任务,可以看做一个简单的Quartz;");
+		}
+	}	
+	
+	3.2.2、在spring-task.xml中加入配置文件;
+	<?xml version="1.0" encoding="UTF-8"?>
+	<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:task="http://www.springframework.org/schema/task" 
+		xsi:schemaLocation="http://www.springframework.org/schema/beans 
+								http://www.springframework.org/schema/beans/spring-beans.xsd
+								http://www.springframework.org/schema/context
+								http://www.springframework.org/schema/context/spring-context.xsd
+								http://www.springframework.org/schema/task 
+								http://www.springframework.org/schema/task/spring-task.xsd">
+		
+		
+		<!-- xml配置方式 -->
+		<bean id="taskjob" class="com.security.quartz.TaskJob"></bean>
+		
+		<task:scheduled-tasks>
+			<task:scheduled ref="taskjob" method="job" cron="0/5 * * * * ?"/>
+		</task:scheduled-tasks>
+	
+	</beans>
+	
+	3.2.3、将spring-task.xml配置文件加入applicationcontext.xml中
+	<!-- Spring中的定时任务,相当于一个简单的quartz; -->
+	<import resource="spring-task.xml"/>

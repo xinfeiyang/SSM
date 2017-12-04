@@ -10,7 +10,13 @@
 			http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
 
 	<!--在一个配置文件中引入另外一个配置文件
-	<import resource="spring-quartz.xml"/> -->
+	<import resource="spring-quartz.xml"/>-->
+	
+	<!--定时任务,继承自QuartzJobBean
+	<import resource="spring-quartzjobbean.xml"/>-->
+	
+	<!-- Spring中的定时任务,相当于一个简单的quartz; -->
+	<import resource="spring-task.xml"/>
 	
 	<!-- 利用javaMail发送邮件 -->
 	<import resource="spring-mail.xml"/>
