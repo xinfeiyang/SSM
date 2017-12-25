@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.security.bean.Bean;
 import com.security.bean.CustomBean;
@@ -22,6 +24,8 @@ import com.security.bean.User;
 import com.security.exception.BusinessException;
 import com.security.service.DepartmentService;
 import com.security.service.EmailService;
+import com.security.service.ThumbnailService;
+import com.security.service.UploadService;
 import com.security.service.UserService;
 import com.security.util.HttpClientUtil;
 
@@ -36,6 +40,28 @@ public class UserController {
 	
 	@Autowired
 	private EmailService emailService;
+	
+	@Autowired
+	private UploadService uploadService;
+	
+	@Autowired
+	private ThumbnailService thumbnailService;
+	
+	@PostMapping("/file/upload")
+	public ModelAndView uploadFile(@RequestParam("image")CommonsMultipartFile file,HttpSession session){
+		String uploadPath = "/resource/img";//图片保存位置
+		String realUploadPath = session.getServletContext().getRealPath(uploadPath);
+		System.out.println("-->"+realUploadPath);
+		String imageUrl = uploadService.uploadImage(file, uploadPath, realUploadPath);//图片原图路径
+		String thumbnailUrl = thumbnailService.thumbnail(file, uploadPath, realUploadPath);//图片缩略图路径
+		
+		ModelAndView md = new ModelAndView();
+		md.addObject("imageURL", imageUrl);
+		md.addObject("thumbnailURL", thumbnailUrl);
+		md.setViewName("thumbnail");
+		
+		return md;
+	}
 	
 	@GetMapping("/sendEmail")
 	public void sendEmail() throws Exception{

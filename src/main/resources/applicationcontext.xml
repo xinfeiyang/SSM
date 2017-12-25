@@ -15,8 +15,10 @@
 	<!--定时任务,继承自QuartzJobBean
 	<import resource="spring-quartzjobbean.xml"/>-->
 	
-	<!-- Spring中的定时任务,相当于一个简单的quartz; -->
+	<!-- Spring中的定时任务,相当于一个简单的quartz;
 	<import resource="spring-task.xml"/>
+	
+	<import resource="spring-redis.xml"/> -->
 	
 	<!-- 利用javaMail发送邮件 -->
 	<import resource="spring-mail.xml"/>

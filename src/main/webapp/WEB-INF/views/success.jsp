@@ -39,7 +39,13 @@
 			</c:forEach>
 		</table>
 	</form>
-	<a href="/sendEmail">发送邮件</a>
+	<a href="/sendEmail">发送邮件</a><br/>
+	
+	<form action="/file/upload" method="post" enctype="multipart/form-data">
+		<input type="file" name="image"/><br/>
+		<input type="submit" value="上传文件"/>
+	</form>
+	
 	<script type="text/javascript" src="/resource/js/jquery.js"></script>
 	<script type="text/javascript" src="/resource/js/jquery.ocupload-1.1.2.js"></script>
 	<script type="text/javascript">
