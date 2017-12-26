@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+							http://www.springframework.org/schema/beans/spring-beans.xsd
+							http://www.springframework.org/schema/context
+							http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<!-- 配置JdedisPool -->
+	<bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+		<constructor-arg name="host" value="183.169.248.170"></constructor-arg>
+		<constructor-arg name="port" value="6379"></constructor-arg>
+	</bean>
+
+	<!--定义单机版 -->
+	<bean class="com.security.util.JedisClientPool">
+		<property name="jedisPool" ref="jedisPool"></property>
+	</bean>
+
+	<!--配置集群 -->
+	<!-- <bean class="com.security.util.JedisClientCluster">
+		<property name="jedisCluster" ref="jedisCluster"></property>
+	</bean>
+
+	<bean id="jedisCluster" class="redis.clients.jedis.JedisCluster">
+		<constructor-arg name="nodes">
+			<set>
+				可设置多个HostAndPort
+				<bean class="redis.clients.jedis.HostAndPort">
+					<constructor-arg name="host" value="183.169.248.170"></constructor-arg>
+					<constructor-arg name="port" value="6379"></constructor-arg>
+				</bean>
+			</set>
+		</constructor-arg>
+	</bean> -->
+
+</beans>

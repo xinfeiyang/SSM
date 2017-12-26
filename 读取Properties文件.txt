@@ -1,0 +1,36 @@
+方法一：利用Properties读取文件输入流;
+	InputStream in = NumTest.class.getResourceAsStream("/db.properties");
+	Properties properties = new Properties();
+	properties.load(in);
+	String value = properties.getProperty("jdbc.url"); // 获得name属性
+	System.out.println(value);//jdbc:mysql://localhost:3306/spring?characterEncoding=utf-8
+	
+方法二：利用ResourceBundle
+	String url=ResourceBundle.getBundle("db").getString("jdbc.url");
+	System.out.println(url);//jdbc:mysql://localhost:3306/spring?characterEncoding=utf-8
+	
+
+读取classpath下文件
+	String fileName = NumTest.class.getResource("/db.properties").getFile();
+	System.out.println(fileName);-->/D:/WorkSpace/Eclipse/SSM/target/classes/db.properties
+	
+	
+WEB工程下读取文件的几种方法:http://mp.weixin.qq.com/s/pbvIv0Y2oGXdLiZEB7IRbw
+
+1、读取文件系统路径文件 * 一定要使用绝对路径
+String fileName = getServletContext().getRealPath("/index.jsp"); // 读取WebRoot下
+String fileName2 = getServletContext().getRealPath("/WEB-INF/a.properties");// 读取WebRoot/WEB-INF/a.properties
+
+2、读取classpath下文件
+String fileName3 = ReadFile.class.getResource("/info.txt").getFile();// 读取src下info.txt
+String fileName4 = ReadFile.class.getResource("/cn/itcast/config/info.txt").getFile();// 读取 src下 cn.itcast.config包下info.txt
+
+3、使用ResourceBundle 快速读取src下properties文件
+String value = ResourceBundle.getBundle("myproperties").getString("name");// 读取src下 基名为myproperties的properties文件，获取其中name配置值
+
+4、使用Properties类加载Properties文件
+// 读取src下b.properties
+InputStream in = ReadFile.class.getResourceAsStream("/b.properties");
+Properties properties = new Properties();
+properties.load(in);
+String value2 = properties.getProperty("name"); // 获得name属性

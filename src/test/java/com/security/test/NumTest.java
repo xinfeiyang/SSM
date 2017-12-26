@@ -1,10 +1,31 @@
 package com.security.test;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.ResourceBundle;
+
 import org.junit.Test;
 
 import com.security.bean.Person;
 
 public class NumTest {
+	
+	@Test
+	public void testProperty() throws IOException{
+		String fileName3 = NumTest.class.getResource("/db.properties").getFile();
+		System.out.println(fileName3);
+		
+		/*String url=ResourceBundle.getBundle("db").getString("jdbc.url");
+		System.out.println(url);*/
+		
+		/*InputStream in = NumTest.class.getResourceAsStream("/db.properties");
+		Properties properties = new Properties();
+		properties.load(in);
+		String value = properties.getProperty("jdbc.url"); // 获得name属性
+		System.out.println(value);*/
+	}
 
 	@Test
 	public void simpleTest() {
